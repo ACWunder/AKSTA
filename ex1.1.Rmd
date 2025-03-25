@@ -1,0 +1,152 @@
+---
+title: |
+  <center>
+  <strong>AKSTA Statistical Computing – Case Study 1</strong><br>
+  
+  Arthur Wunder (12431488), Temur ... (...), Valentina ... (...)<br>
+  
+  25 March 2025
+  </center>
+output: html_document
+---
+
+# Exercise 1
+
+### Task a
+
+```{r}
+# Function with for-Loop
+fib_ratio_for <- function(n) {
+  fib <- numeric(n + 1)
+  fib[1] <- 1
+  fib[2] <- 1
+  for (i in 3:(n + 1)) {
+    fib[i] <- fib[i - 1] + fib[i - 2]
+  }
+  return(fib[2:(n + 1)] / fib[1:n])
+}
+
+# Function with while-Lopp
+fib_ratio_while <- function(n) {
+  fib <- numeric(n + 1)
+  fib[1] <- 1
+  fib[2] <- 1
+  i <- 3
+  while (i <= n + 1) {
+    fib[i] <- fib[i - 1] + fib[i - 2]
+    i <- i + 1
+  }
+  return(fib[2:(n + 1)] / fib[1:n])
+}
+
+```
+
+### Task b
+
+```{r}
+# Benchmark with microbenchmark
+library(microbenchmark)
+
+n1 <- 200
+n2 <- 2000
+
+bench_results <- microbenchmark(
+  for_200 = fib_ratio_for(n1),
+  while_200 = fib_ratio_while(n1),
+  for_2000 = fib_ratio_for(n2),
+  while_2000 = fib_ratio_while(n2),
+  times = 10L
+)
+
+print(bench_results)
+
+```
+
+The implementation using the for loop is faster than the one using while for both n = 200 and n = 2000, based on the benchmark results.
+
+### Task c
+
+```{r}
+# Plot for n = 100
+n <- 100
+ratios <- fib_ratio_for(n)
+
+plot(1:n, ratios, type = "l", col = "blue", lwd = 2,
+     main = "Fibonacci Ratio Sequence r[i] = F[i+1] / F[i]",
+     xlab = "i", ylab = "Ratio F[i+1] / F[i]")
+abline(h = (1 + sqrt(5)) / 2, col = "red", lty = 2)  # Golden ratio
+legend("topright", legend = c("Fibonacci ratio", "Golden ratio"), 
+       col = c("blue", "red"), lty = c(1, 2), bty = "n")
+
+```
+
+
+The Fibonacci ratio sequence starts to stabilize around n ≈ 10–15.
+From that point onward, the ratio fluctuates only very slightly.
+
+The sequence converges to the golden ratio, which is approximately 1.6180
+This is clearly visible in the plot where the blue line approaches and stays very close to the red dashed line representing the golden ratio.
+
+# Exercise 2
+
+### Task a
+
+```{r}
+# Function to compute rho_n using the gamma function
+rho_gamma <- function(n) {
+  num <- gamma((n - 1) / 2)
+  denom <- gamma(1 / 2) * gamma((n - 2) / 2)
+  rho <- num / denom
+  return(rho)
+}
+
+```
+
+### Task b
+
+```{r}
+# Evaluate rho_n for n = 2000
+rho_n_2000 <- rho_gamma(2000)
+print(rho_n_2000)
+
+
+```
+
+When computing ρₙ for large values like n = 2000 using the gamma() function, the result is NaN. This happens because the gamma function grows very rapidly, and evaluating gamma((n - 1)/2) or gamma((n - 2)/2) leads to numerical overflow. Since R cannot represent such large values accurately, the division results in undefined or infinite values, causing the final result to be NaN.
+
+### Task c
+
+```{r}
+# Numerically stable version using logarithms
+rho_gamma_stable <- function(n) {
+  log_num <- lgamma(n / 2)
+  log_denom <- lgamma(1 / 2) + lgamma((n - 1) / 2)
+  log_rho <- log_num - log_denom
+  return(exp(log_rho))
+}
+
+
+# Test for large n
+rho_stable_2000 <- rho_gamma_stable(2000)
+print(rho_stable_2000)
+
+
+```
+
+### Task d
+
+```{r}
+
+n_vals <- 10:2000
+rho_vals <- sapply(n_vals, rho_gamma_stable)
+y_vals <- rho_vals / sqrt(n_vals)
+
+plot(n_vals, y_vals, type = "l", col = "darkgreen", lwd = 2,
+     main = expression(paste("Plot of ", rho[n], " / ", sqrt(n))),
+     xlab = "n", ylab = expression(rho[n] / sqrt(n)))
+
+
+```
+
+Not sure if this is correct... 
+
