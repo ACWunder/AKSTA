@@ -148,5 +148,4 @@ plot(n_vals, y_vals, type = "l", col = "darkgreen", lwd = 2,
 
 ```
 
-Not sure if this is correct... 
 
